@@ -9,11 +9,12 @@ namespace IntegratedSystems.Domain.DTO
 {
     public class AddPatientToCenterDTO
     {
+        public Guid CenterId { get; set; }
         public string? Manufacturer { get; set; }
 
         public DateTime DateTaken { get; set; }
 
-        public ICollection<Patient>? PatientsToList { get; set; }
+        public Guid PatientId { get; set; }
 
     }
 }

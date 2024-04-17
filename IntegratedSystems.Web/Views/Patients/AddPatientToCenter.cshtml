@@ -1,6 +1,8 @@
-﻿@model IntegratedSystems.Domain.Domain_Models.Vaccine
+﻿@model IntegratedSystems.Domain.DTO.AddPatientToCenterDTO
 <div class="container">
-    <form method="post" asp-action="AddProductToCart">
+    <form method="post" asp-action="AddPatientToCenter">
+
+        <input type="hidden" asp-for="CenterId" value=@Model.CenterId class="form-control"/>
 
 
         <div class="row mt-4">
@@ -21,7 +23,7 @@
         <div class="row mt-4">
             <div class="form-group">
                 <label asp-for="PatientId" class="control-label"></label>
-                <input asp-for="PatientId" type="number" class="form-control" />
+                <select asp-for="PatientId" class="form-control" asp-items="ViewBag.Items"></select>
                 <span asp-validation-for="PatientId" class="text-danger"></span>
             </div>
         </div>

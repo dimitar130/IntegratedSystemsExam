@@ -34,8 +34,14 @@ namespace IntegratedSystems.Web.Controllers
             {
                 return NotFound();
             }
-            ViewBag.Id = id;
-            return View(await _context.Patients.Where(p => p.Id == id).ToListAsync());
+            ViewData["centerId"] = id;
+            ICollection<Vaccine> vaccines =  await _context.Vaccines.Where(v => v.VaccinationCenter.Equals(id)).ToListAsync();
+            ICollection<Patient> model = new HashSet<Patient>();
+            foreach(var vaccine in vaccines)
+            {
+                model.Add(await _context.Patients.Where(p => p.Id.Equals(vaccine.PatientId)).FirstOrDefaultAsync());
+            }
+            return View(model);
         }
 
         // GET: Patients/Details/5
@@ -168,15 +174,59 @@ namespace IntegratedSystems.Web.Controllers
             return _context.Patients.Any(e => e.Id == id);
         }
 
-        public IActionResult AddPatientToCenter()
+        public IActionResult AddPatientToCenter(Guid id)
         {
             AddPatientToCenterDTO model = new AddPatientToCenterDTO()
             {
+                CenterId = (Guid)id,
                 Manufacturer = "",
                 DateTaken = DateTime.Now,
-                PatientsToList = _context.Patients.ToList()
+                PatientId = new Guid()
             };
 
+            ViewData["Items"] = new SelectList(_context.Patients, "Id", "FirstName");
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddPatientToCenter([Bind("CenterId", "Manufacturer", "DataTaken", "PatientId")] AddPatientToCenterDTO item)
+        {
+
+            VaccinationCenter? center = await _context.VaccinationCenters.Where(c => c.Id.Equals(item.CenterId)).FirstOrDefaultAsync();
+
+            if (ModelState.IsValid)
+            {
+
+                if (center.MaxCapacity == 0)
+                {
+                    ViewData["Name"] = center.Name;
+                    return RedirectToAction("ErrorPage");
+                };
+
+                Vaccine model = new Vaccine()
+                {
+                    Manufacturer = item.Manufacturer,
+                    Certificate = Guid.NewGuid(),
+                    DateTaken = item.DateTaken,
+                    PatientId = item.PatientId,
+                    PatientFor = await _context.Patients.Where(p => p.Id.Equals(item.PatientId)).FirstOrDefaultAsync(),
+                    VaccinationCenter = item.CenterId,
+                    Center = center
+                };
+
+                model.Center.MaxCapacity--;
+                _context.Add(model);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction("PatientsForCenter","Patients", new { id = item.CenterId});
+            }            
+
+            return RedirectToAction("Index","VaccinationCenters");
+        }
+
+        public IActionResult ErrorPage(Guid centerId)
+        {
             return View();
         }
     }

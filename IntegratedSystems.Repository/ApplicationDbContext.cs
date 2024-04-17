@@ -34,12 +34,12 @@ namespace IntegratedSystems.Repository
             builder.Entity<Vaccine>()
                 .HasOne(z => z.PatientFor)
                 .WithMany(z => z.VaccinationSchedule)
-                .HasForeignKey(z => z.VaccinationCenter);
+                .HasForeignKey(z => z.PatientId);
 
             builder.Entity<Vaccine>()
                 .HasOne(z => z.Center)
                 .WithMany(z => z.Vaccines)
-                .HasForeignKey(z => z.PatientId);
+                .HasForeignKey(z => z.VaccinationCenter);
 
 
         }
